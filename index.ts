@@ -3,7 +3,7 @@ import cors from "cors";
 import routes from "./routes/index.route";
 import { connectDB } from './config/DBconnect';
 import dotenv from "dotenv";
-
+import cookieParser from 'cookie-parser';
 
 // load biến môi trường
 dotenv.config();
@@ -24,6 +24,9 @@ app.use(cors({
 
 // cho phép data gửi lên dạng json
 app.use(express.json());
+
+// cấu hình lấy cookie
+app.use(cookieParser());
 
 // thiết lập đường dẫn
 app.use("/", routes);
