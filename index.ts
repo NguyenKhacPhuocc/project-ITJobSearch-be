@@ -19,6 +19,7 @@ app.use(cors({
   origin: "http://localhost:3000", // domain frontend
   methods: ["GET", "POST", "PATCH", "DELETE"],
   allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true // cho phép gửi cookie từ backend -> frontend (domain khác nhau)
 }))
 
 // cho phép data gửi lên dạng json
