@@ -1,11 +1,33 @@
-import express, { Request, Response } from 'express';
+import express from 'express';
+import cors from "cors";
+import routes from "./routes/index.route";
+import { connectDB } from './config/DBconnect';
+import dotenv from "dotenv";
+
+
+// load biến môi trường
+dotenv.config();
 
 const app = express();
-const port = 3003;
+const port = 8000;
 
-app.get('/', (req: Request, res: Response) => {
-  res.send("hello world");
-})
+// kết nối DB
+connectDB();
+
+// cấu hình CORS
+app.use(cors({
+  origin: "http://localhost:3000", // domain frontend
+  methods: ["GET", "POST", "PATCH", "DELETE"],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+}))
+
+// cho phép data gửi lên dạng json
+app.use(express.json());
+
+// thiết lập đường dẫn
+app.use("/", routes);
+
+
 
 app.listen(port, () => {
   console.log(`website đang chạy trên cổng ${port}`);
