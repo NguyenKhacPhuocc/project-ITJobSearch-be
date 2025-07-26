@@ -1,16 +1,16 @@
 import { Request, Response } from "express";
-import AccountUser from "../models/account-user.model";
+import AccountCompany from "../models/account-company.model";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
 export const registerPost = async (req: Request, res: Response) => {
-  const { fullName, email, password } = req.body;
+  const { companyName, email, password } = req.body;
 
-  const existingUser = await AccountUser.findOne({
+  const existingCompany = await AccountCompany.findOne({
     email: email
   });
 
-  if (existingUser) {
+  if (existingCompany) {
     res.json({
       code: "error",
       message: "Email đã được sử dụng!"
@@ -22,13 +22,13 @@ export const registerPost = async (req: Request, res: Response) => {
   const salt = await bcrypt.genSalt(10); // tạo ra chuỗi ngẫu nhiên có 10 kí tự
   const hashPassword = await bcrypt.hash(password, salt);
 
-  const newUser = new AccountUser({
-    fullName: fullName,
+  const newAccountCompany = new AccountCompany({
+    companyName: companyName,
     email: email,
     password: hashPassword
   });
 
-  await newUser.save();
+  await newAccountCompany.save();
 
   res.json({
     code: "success",
@@ -39,20 +39,20 @@ export const registerPost = async (req: Request, res: Response) => {
 export const loginPost = async (req: Request, res: Response) => {
   const { email, password } = req.body;
 
-  const existingUser = await AccountUser.findOne({
+  const existingCompany = await AccountCompany.findOne({
     email: email
   });
 
-  if (!existingUser) {
+  if (!existingCompany) {
     res.json({
       code: "error",
-      message: "Email không tồn tại!"
+      message: "Email không tồn tại! ??"
     });
     return;
   }
 
   // so sánh mật khẩu người dùng nhập vào với mật khẩu đã mã hóa trong cơ sở dữ liệu
-  const isPasswordValid = await bcrypt.compare(password, `${existingUser.password}`);
+  const isPasswordValid = await bcrypt.compare(password, `${existingCompany.password}`);
   if (!isPasswordValid) {
     res.json({
       code: "error",
@@ -64,8 +64,8 @@ export const loginPost = async (req: Request, res: Response) => {
   // tạo token JWT
   const token = jwt.sign(
     {
-      id: existingUser.id,
-      email: existingUser.email
+      id: existingCompany.id,
+      email: existingCompany.email
     },
     `${process.env.JWT_SECRET}`, // mã bí mật để mã hóa token
     {

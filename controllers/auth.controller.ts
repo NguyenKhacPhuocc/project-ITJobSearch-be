@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import AccountUser from "../models/account-user.model";
 import jwt from "jsonwebtoken";
+import AccountCompany from "../models/account-company.model";
 
 export const checkLogin = async (req: Request, res: Response) => {
   try {
@@ -17,31 +18,53 @@ export const checkLogin = async (req: Request, res: Response) => {
     const decoded = jwt.verify(token, `${process.env.JWT_SECRET}`) as jwt.JwtPayload; // giải mã token
     const { id, email } = decoded;
 
+    // tìm tài khoản ứng viên
     const existingUser = await AccountUser.findOne({
       _id: id,
       email: email
     });
+    if (existingUser) {
+      const info = {
+        id: existingUser.id,
+        fullName: existingUser.fullName,
+        email: existingUser.email,
+        role: "user",
+      };
+      res.json({
+        code: "success",
+        message: "Token hợp lệ",
+        info: info
+      });
+      return;
+    }
 
-    if (!existingUser) {
+    // tìm tài khoản company
+    const existingCompany = await AccountCompany.findOne({
+      _id: id,
+      email: email
+    });
+    if (existingCompany) {
+      const info = {
+        id: existingCompany.id,
+        companyName: existingCompany.companyName,
+        email: existingCompany.email,
+        role: "company",
+      };
+      res.json({
+        code: "success",
+        message: "Token hợp lệ",
+        info: info
+      });
+      return;
+    }
+
+    if (!existingUser && !existingCompany) {
       res.clearCookie("token");
       res.json({
         code: "error",
         message: "Token không hợp lệ"
       });
-      return;
     }
-
-    const infoUser = {
-      id: existingUser.id,
-      fullName: existingUser.fullName,
-      email: existingUser.email
-    };
-
-    res.json({
-      code: "success",
-      message: "Token hợp lệ",
-      infoUser: infoUser
-    });
   } catch (error) {
     res.clearCookie("token");
     res.json({
