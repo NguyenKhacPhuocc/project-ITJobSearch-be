@@ -51,6 +51,15 @@ export const checkLogin = async (req: Request, res: Response) => {
         id: existingCompany.id,
         companyName: existingCompany.companyName,
         email: existingCompany.email,
+        city: existingCompany.city,
+        address: existingCompany.address,
+        companyModel: existingCompany.companyModel,
+        companyEmployees: existingCompany.companyEmployees,
+        workingTime: existingCompany.workingTime,
+        workOvertime: existingCompany.workOvertime,
+        description: existingCompany.description,
+        logo: existingCompany.logo,
+        phone: existingCompany.phone,
         role: "company",
       };
       res.json({
