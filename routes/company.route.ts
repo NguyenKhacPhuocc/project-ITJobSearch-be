@@ -9,7 +9,7 @@ const router = Router();
 
 const upload = multer({ storage: storage })
 
-router.post('/register', 
+router.post('/register',
   companyValidate.registerPost, companyController.registerPost
 );
 
@@ -21,4 +21,12 @@ router.patch('/profile',
   companyValidate.updateProfile,
   companyController.profilePatch
 )
+
+router.post('/job/create',
+  authMiddleware.verifyTokenCompany,
+  upload.array('images', 8),
+  companyValidate.createJob,
+  companyController.createJobPost
+)
+
 export default router;

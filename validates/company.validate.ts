@@ -111,3 +111,52 @@ export const updateProfile = (req: Request, res: Response, next: NextFunction) =
 
   return next();
 }
+
+
+export const createJob = (req: Request, res: Response, next: NextFunction) => {
+  const schema = Joi.object({
+    title: Joi.string()
+      .required()
+      .messages({
+        "string.empty": "Vui lòng nhập tên công việc!",
+      }),
+    salaryMin: Joi.number()
+      .min(0)
+      .messages({
+        "string.empty": "Vui lòng nhập mức lương >= 0!",
+      }),
+    salaryMax: Joi.number()
+      .min(0)
+      .messages({
+        "string.empty": "Vui lòng nhập mức lương >= 0!",
+      }),
+    level: Joi.string()
+      .required()
+      .messages({
+        "string.empty": "Vui lòng cấp bậc của công việc!",
+      }),
+    workingForm: Joi.string()
+      .required()
+      .messages({
+        "string.empty": "Vui lòng chọn hình thức làm việc!",
+      }),
+    skills: Joi.string().allow(""),
+    expertise: Joi.string().allow(""),
+    images: Joi.string().allow(""),
+    description: Joi.string().allow(""),
+  });
+
+  const { error } = schema.validate(req.body);
+
+  if (error) {
+    const errorMessage = error.details[0].message;
+
+    res.json({
+      code: "error",
+      message: errorMessage
+    });
+    return;
+  }
+
+  return next();
+}
