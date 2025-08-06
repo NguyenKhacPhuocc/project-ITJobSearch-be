@@ -46,4 +46,10 @@ router.patch('/job/edit/:id',
   companyController.JobEditPatch
 )
 
+
+router.delete('/job/delete/:id',
+  authMiddleware.verifyTokenCompany,
+  companyController.jobDelete
+)
+
 export default router;
