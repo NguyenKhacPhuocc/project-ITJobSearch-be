@@ -144,13 +144,33 @@ export const getJobList = async (req: AccountRequest, res: Response) => {
   const rawLocale = req.headers['accept-language'];
   const locale: Locale = rawLocale === 'vi' ? 'vi' : 'en';
 
+  const find = {
+    companyId: req.account.id
+  };
+
+  // phân trang
+  let limit = 3;
+  let page = 1;
+  if (req.query.page) {
+    const currentPage = parseInt(`${req.query.page}`);
+    if (currentPage > 0) {
+      page = currentPage;
+    }
+  }
+  const totalRecord = await Job.countDocuments(find);
+  const totalPage = Math.ceil(totalRecord / limit);
+  if (page > totalPage && totalPage != 0) {
+    page = totalPage;
+  }
+  // phân trang end
+
   const jobList = await Job
-    .find({
-      companyId: req.account.id
-    })
+    .find(find)
     .sort({
       createdAt: "desc"
-    });
+    })
+    .skip((page - 1) * limit)
+    .limit(limit);
 
   const dataFinal = [];
 
@@ -176,6 +196,7 @@ export const getJobList = async (req: AccountRequest, res: Response) => {
 
   res.json({
     code: "success",
-    jobList: dataFinal
+    jobList: dataFinal,
+    totalPage: totalPage,
   })
 }
