@@ -52,4 +52,6 @@ router.delete('/job/delete/:id',
   companyController.jobDelete
 )
 
+router.get('/list',companyController.getCompanyList)
+
 export default router;

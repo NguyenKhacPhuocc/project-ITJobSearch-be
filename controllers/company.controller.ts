@@ -313,3 +313,44 @@ export const jobDelete = async (req: AccountRequest, res: Response) => {
     })
   }
 }
+
+
+export const getCompanyList = async (req: Request, res: Response) => {
+
+  let limitItems = 12;
+  if (req.query.limitItems) {
+    limitItems = parseInt(`${req.query.limitItems}`);
+  }
+
+  const companyList = await AccountCompany
+    .find({})
+    .limit(limitItems)
+
+
+  const copanyDataFinal = [];
+
+
+
+  for (const item of companyList) {
+    const city = await City.findOne({
+      _id: item.city
+    });
+
+    const totalJobInCompany = await Job.countDocuments({
+      companyId: item.id,
+    })
+
+    copanyDataFinal.push({
+      id: item.id,
+      logo: item.logo,
+      companyName: item.companyName,
+      cityName: city?.name,
+      totalJob: totalJobInCompany ? totalJobInCompany : 0,
+    })
+  }
+
+  res.json({
+    code: "success",
+    companyList: copanyDataFinal
+  })
+}
