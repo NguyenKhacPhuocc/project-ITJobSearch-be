@@ -10,9 +10,9 @@ export const search = async (req: Request, res: Response) => {
   if (Object.keys(req.query).length > 0) {
     const find: any = {}
 
-    //skill
+    // skill
     if (req.query.skill) {
-      find.skills = req.query.skill
+      find.skills = { $regex: new RegExp(`^${req.query.skill}$`, 'i') };
     }
 
     //city
@@ -59,6 +59,16 @@ export const search = async (req: Request, res: Response) => {
           { skills: regex }
         ];
       }
+    }
+
+    // theo level
+    if (req.query.level) {
+      find.level = req.query.level
+    }
+
+    // theo workingForm
+    if (req.query.workingForm) {
+      find.workingForm = req.query.workingForm
     }
 
     const jobs = await Job
