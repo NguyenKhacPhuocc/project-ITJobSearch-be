@@ -14,6 +14,25 @@ export const search = async (req: Request, res: Response) => {
       find.skills = req.query.skill
     }
 
+    //city
+    if (req.query.city) {
+      const city = await City.findOne({
+        $or: [
+          { "name.en": req.query.city },
+          { "name.vi": req.query.city }
+        ]
+      })
+      if (city) {
+        const companies = await AccountCompany.find({
+          city: city.id,
+        })
+        const companyIds = companies.map(item => item.id)
+        if (companyIds.length > 0) {
+          find.companyId = { $in: companyIds };
+        }
+      }
+    }
+
     const jobs = await Job
       .find(find)
       .sort({

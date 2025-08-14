@@ -197,6 +197,33 @@ export const getJobList = async (req: AccountRequest, res: Response) => {
   res.json({
     code: "success",
     jobList: dataFinal,
+    // totalPage: totalPage,
+  })
+}
+
+export const getTotalPageJobList = async (req: AccountRequest, res: Response) => {
+  const find = {
+    companyId: req.account.id
+  };
+
+  // phân trang
+  let limit = 3;
+  let page = 1;
+  if (req.query.page) {
+    const currentPage = parseInt(`${req.query.page}`);
+    if (currentPage > 0) {
+      page = currentPage;
+    }
+  }
+  const totalRecord = await Job.countDocuments(find);
+  const totalPage = Math.ceil(totalRecord / limit);
+  if (page > totalPage && totalPage != 0) {
+    page = totalPage;
+  }
+  // phân trang end
+
+  res.json({
+    code: "success",
     totalPage: totalPage,
   })
 }

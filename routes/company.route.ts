@@ -34,6 +34,11 @@ router.get('/job/list',
   companyController.getJobList
 )
 
+router.get('/job/total-pages',
+  authMiddleware.verifyTokenCompany,
+  companyController.getTotalPageJobList
+)
+
 router.get('/job/edit/:id',
   authMiddleware.verifyTokenCompany,
   companyController.getJobEdit
