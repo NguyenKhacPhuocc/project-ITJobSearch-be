@@ -157,11 +157,6 @@ export const getJobList = async (req: AccountRequest, res: Response) => {
       page = currentPage;
     }
   }
-  const totalRecord = await Job.countDocuments(find);
-  const totalPage = Math.ceil(totalRecord / limit);
-  if (page > totalPage && totalPage != 0) {
-    page = totalPage;
-  }
   // phân trang end
 
   const jobList = await Job
@@ -197,7 +192,6 @@ export const getJobList = async (req: AccountRequest, res: Response) => {
   res.json({
     code: "success",
     jobList: dataFinal,
-    // totalPage: totalPage,
   })
 }
 
@@ -209,12 +203,6 @@ export const getTotalPageJobList = async (req: AccountRequest, res: Response) =>
   // phân trang
   let limit = 3;
   let page = 1;
-  if (req.query.page) {
-    const currentPage = parseInt(`${req.query.page}`);
-    if (currentPage > 0) {
-      page = currentPage;
-    }
-  }
   const totalRecord = await Job.countDocuments(find);
   const totalPage = Math.ceil(totalRecord / limit);
   if (page > totalPage && totalPage != 0) {
