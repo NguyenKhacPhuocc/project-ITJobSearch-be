@@ -5,6 +5,7 @@ import City from "../models/city.model";
 
 export const search = async (req: Request, res: Response) => {
   const dataFinal = []
+  let companyInfo: any = null;
 
   if (Object.keys(req.query).length > 0) {
     const find: any = {}
@@ -30,6 +31,33 @@ export const search = async (req: Request, res: Response) => {
         if (companyIds.length > 0) {
           find.companyId = { $in: companyIds };
         }
+      }
+    }
+
+    // keysearch
+    if (req.query.keysearch) {
+      const regex = new RegExp(`${req.query.keysearch}`, "i");
+      companyInfo = await AccountCompany.findOne({
+        companyName: regex
+      }).select("_id companyName slug logo address");
+      if (companyInfo) {
+        companyInfo = {
+          id: companyInfo._id,
+          companyName: companyInfo.companyName,
+          slug: companyInfo.slug,
+          logo: companyInfo.logo,
+          address: companyInfo.address
+        };
+        find.$or = [
+          { title: regex },
+          { skills: regex },
+          { companyId: `${companyInfo.id}` }
+        ];
+      } else {
+        find.$or = [
+          { title: regex },
+          { skills: regex }
+        ];
       }
     }
 
@@ -69,6 +97,7 @@ export const search = async (req: Request, res: Response) => {
   }
   res.json({
     code: "success",
-    jobs: dataFinal
+    jobs: dataFinal,
+    companyInfo: companyInfo
   })
 }

@@ -17,6 +17,7 @@
     "joi": "^17.13.3",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.16.4",
+    "mongoose-slug-updater": "^3.3.0",
     "multer": "^2.0.2",
     "multer-storage-cloudinary": "^4.0.0"
   },

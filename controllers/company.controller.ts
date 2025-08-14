@@ -341,6 +341,26 @@ export const jobDelete = async (req: AccountRequest, res: Response) => {
   }
 }
 
+export const list = async (req: Request, res: Response) => {
+  const companyList = await AccountCompany
+    .find({})
+
+  const copanyDataFinal = [];
+
+  for (const item of companyList) {
+    copanyDataFinal.push({
+      id: item.id,
+      logo: item.logo,
+      companyName: item.companyName,
+      slug: item.slug
+    })
+  }
+
+  res.json({
+    code: "success",
+    companies: copanyDataFinal
+  })
+}
 
 export const getCompanyList = async (req: Request, res: Response) => {
 

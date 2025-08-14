@@ -1,4 +1,6 @@
 import mongoose from "mongoose";
+const slug = require('mongoose-slug-updater')
+mongoose.plugin(slug)
 
 const schema = new mongoose.Schema(
   {
@@ -14,6 +16,11 @@ const schema = new mongoose.Schema(
     description: String,
     logo: String,
     phone: String,
+    slug: {
+      type: String,
+      slug: "companyName",
+      unique: true
+    },
   },
   {
     timestamps: true, // Tự động sinh ra trường createdAt và updatedAt

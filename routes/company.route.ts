@@ -56,6 +56,7 @@ router.delete('/job/delete/:id',
   authMiddleware.verifyTokenCompany,
   companyController.jobDelete
 )
+router.get('/api/list', companyController.list);
 
 router.get('/list',companyController.getCompanyList)
 

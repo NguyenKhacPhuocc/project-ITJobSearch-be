@@ -1,4 +1,6 @@
 import mongoose from "mongoose";
+const slug = require('mongoose-slug-updater')
+mongoose.plugin(slug)
 
 const schema = new mongoose.Schema({
   companyId: String,
@@ -10,7 +12,12 @@ const schema = new mongoose.Schema({
   skills: Array,
   expertise: String,
   description: String,
-  images: Array
+  images: Array,
+  slug: {
+    type: String,
+    slug: "title",
+    unique: true
+  },
 },
   {
     timestamps: true // auto generate createdAt field and updateAt field
