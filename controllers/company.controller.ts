@@ -381,6 +381,7 @@ export const getCompanyList = async (req: Request, res: Response) => {
       companyName: item.companyName,
       cityName: city?.name,
       totalJob: totalJobInCompany ? totalJobInCompany : 0,
+      slug: item.slug
     })
   }
 
