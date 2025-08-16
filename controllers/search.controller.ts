@@ -106,7 +106,8 @@ export const search = async (req: Request, res: Response) => {
         workingForm: item.workingForm,
         companyCity: { vi: "", en: "" },
         skills: item.skills,
-        slug: item.slug
+        slug: item.slug,
+        expertise: item.expertise,
       };
       if (company) {
         const city = await City.findOne({

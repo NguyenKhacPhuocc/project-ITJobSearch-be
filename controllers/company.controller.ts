@@ -409,3 +409,90 @@ export const getTotalPageCompanyList = async (req: Request, res: Response) => {
     totalPage: totalPage,
   })
 }
+
+export const getDetailedCompany = async (req: Request, res: Response) => {
+  try {
+    const slug = req.params.slug
+    const company = await AccountCompany.findOne({
+      slug: slug
+    })
+    if (!company) {
+      res.json({
+        code: "error",
+        detailedCompany: {}
+      })
+      return;
+    }
+    const detailedCompany = {
+      id: company.id,
+      logo: company.logo,
+      companyName: company.companyName,
+      address: company.address,
+      companyModel: company.companyModel,
+      companyEmployees: company.companyEmployees,
+      workingTime: company.workingTime,
+      workOvertime: company.workOvertime,
+      description: company.description,
+    };
+
+    res.json({
+      code: "success",
+      detailedCompany: detailedCompany
+    })
+  } catch (error) {
+    console.log(error)
+    res.json({
+      code: "error"
+    })
+  }
+}
+
+export const getJobsInCompany = async (req: Request, res: Response) => {
+  try {
+    const slug = req.params.slug
+    const company = await AccountCompany.findOne({
+      slug: slug
+    })
+    if (!company) {
+      res.json({
+        code: "error",
+        jobs: []
+      })
+      return;
+    }
+    const jobs = await Job.find({
+      companyId: company.id
+    })
+    const dataFinal = [];
+
+    const city = await City.findOne({
+      _id: company.city
+    });
+
+    for (const item of jobs) {
+      dataFinal.push({
+        id: item.id,
+        slug: item.slug,
+        companyLogo: company.logo,
+        title: item.title,
+        companyName: company.companyName,
+        salaryMin: item.salaryMin,
+        salaryMax: item.salaryMax,
+        level: item.level,
+        workingForm: item.workingForm,
+        companyCity: city?.name || { vi: "", en: "" },
+        skills: item.skills,
+        expertise: item.expertise,
+      })
+    }
+    res.json({
+      code: "success",
+      jobs: dataFinal
+    })
+  } catch (error) {
+    console.log(error)
+    res.json({
+      code: "error"
+    })
+  }
+}

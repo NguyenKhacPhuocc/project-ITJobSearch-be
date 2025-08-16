@@ -59,6 +59,9 @@ router.delete('/job/delete/:id',
 router.get('/api/list', companyController.list);
 
 router.get('/list', companyController.getCompanyList)
-router.get('/list/total-page',companyController.getTotalPageCompanyList)
+router.get('/list/total-page', companyController.getTotalPageCompanyList)
+
+router.get('/detail/:slug', companyController.getDetailedCompany)
+router.get('/:slug/jobs', companyController.getJobsInCompany)
 
 export default router;
