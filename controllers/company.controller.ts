@@ -351,20 +351,21 @@ export const list = async (req: Request, res: Response) => {
 }
 
 export const getCompanyList = async (req: Request, res: Response) => {
-
-  let limitItems = 12;
-  if (req.query.limitItems) {
-    limitItems = parseInt(`${req.query.limitItems}`);
+  let limit = 9;
+  let page = 1;
+  if (req.query.page) {
+    const currentPage = parseInt(`${req.query.page}`);
+    if (currentPage > 0) {
+      page = currentPage;
+    }
   }
 
   const companyList = await AccountCompany
     .find({})
-    .limit(limitItems)
-
+    .skip((page - 1) * limit)
+    .limit(limit);
 
   const copanyDataFinal = [];
-
-
 
   for (const item of companyList) {
     const city = await City.findOne({
@@ -388,5 +389,23 @@ export const getCompanyList = async (req: Request, res: Response) => {
   res.json({
     code: "success",
     companyList: copanyDataFinal
+  })
+}
+
+export const getTotalPageCompanyList = async (req: Request, res: Response) => {
+
+  // phân trang
+  let limit = 9;
+  let page = 1;
+  const totalRecord = await AccountCompany.countDocuments({});
+  const totalPage = Math.ceil(totalRecord / limit);
+  if (page > totalPage && totalPage != 0) {
+    page = totalPage;
+  }
+  // phân trang end
+
+  res.json({
+    code: "success",
+    totalPage: totalPage,
   })
 }

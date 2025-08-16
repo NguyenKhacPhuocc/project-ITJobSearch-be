@@ -58,6 +58,7 @@ router.delete('/job/delete/:id',
 )
 router.get('/api/list', companyController.list);
 
-router.get('/list',companyController.getCompanyList)
+router.get('/list', companyController.getCompanyList)
+router.get('/list/total-page',companyController.getTotalPageCompanyList)
 
 export default router;
