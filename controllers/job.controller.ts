@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import Job from "../models/job.model";
 import AccountCompany from "../models/account-company.model";
+import CV from "../models/cv.model";
 
 
 export const detailJob = async (req: Request, res: Response) => {
@@ -54,4 +55,16 @@ export const detailJob = async (req: Request, res: Response) => {
       code: "error"
     })
   }
+}
+
+export const applyCV = async (req: Request, res: Response) => {
+  req.body.fileCV = req.file?.path || "";
+
+  const newRecord = new CV(req.body)
+  await newRecord.save();
+
+  res.json({
+    code: "success",
+    message: "apply_success"
+  })
 }

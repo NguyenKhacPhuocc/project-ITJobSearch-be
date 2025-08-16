@@ -107,6 +107,6 @@ export const profilePatch = async (req: AccountRequest, res: Response) => {
 
   res.json({
     code: "success",
-    message: "Cập nhật thành công",
+    message: "update-successfull",
   })
 }

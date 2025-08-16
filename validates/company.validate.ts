@@ -7,42 +7,42 @@ export const registerPost = (req: Request, res: Response, next: NextFunction) =>
       .required()
       .max(200)
       .messages({
-        "string.empty": "Vui lòng nhập tên công ty!",
-        "string.max": "Tên công ty không được vượt quá 200 ký tự!"
+        "string.empty": "companyName_required",
+        "string.max": "companyName_maxLength"
       }),
     email: Joi.string()
       .required()
       .email()
       .messages({
-        "string.empty": "Vui lòng nhập email của công ty!",
-        "string.email": "Email không đúng định dạng!"
+        "string.empty": "email_required",
+        "string.email": "email_invalid"
       }),
     password: Joi.string()
       .required()
       .min(8) // Ít nhất 8 ký tự
       .custom((value, helpers) => {
         if (!/[A-Z]/.test(value)) {
-          return helpers.error("password.uppercase"); // Ít nhất một chữ cái in hoa
+          return helpers.error("password.uppercase");
         }
         if (!/[a-z]/.test(value)) {
-          return helpers.error("password.lowercase"); // Ít nhất một chữ cái thường
+          return helpers.error("password.lowercase");
         }
         if (!/\d/.test(value)) {
-          return helpers.error("password.number"); // Ít nhất một chữ số
+          return helpers.error("password.number");
         }
         if (!/[@$!%*?&]/.test(value)) {
-          return helpers.error("password.special"); // Ít nhất một ký tự đặc biệt
+          return helpers.error("password.special");
         }
-        return value; // Nếu tất cả điều kiện đều đúng
+        return value;
       })
       .messages({
-        "string.empty": "Vui lòng nhập mật khẩu!",
-        "string.min": "Mật khẩu phải chứa ít nhất 8 ký tự!",
-        "password.uppercase": "Mật khẩu phải chứa ít nhất một chữ cái in hoa!",
-        "password.lowercase": "Mật khẩu phải chứa ít nhất một chữ cái thường!",
-        "password.number": "Mật khẩu phải chứa ít nhất một chữ số!",
-        "password.special": "Mật khẩu phải chứa ít nhất một ký tự đặc biệt!",
-      }),
+        "string.empty": "password_required",
+        "string.min": "password_minLength",
+        "password.uppercase": "password_uppercase",
+        "password.lowercase": "password_lowercase",
+        "password.number": "password_number",
+        "password.special": "password_special"
+      })
   });
 
   const { error } = schema.validate(req.body);
@@ -67,13 +67,13 @@ export const updateProfile = (req: Request, res: Response, next: NextFunction) =
       .required()
       .max(200)
       .messages({
-        "string.empty": "Vui lòng nhập tên công ty!",
-        "string.max": "Tên công ty không được vượt quá 200 ký tự!"
+        "string.empty": "company-name-required",
+        "string.max": "company-name-max-length"
       }),
     city: Joi.string()
       .required()
       .messages({
-        "string.empty": "Vui lòng chọn thành phố!",
+        "string.empty": "city-required",
       }),
     address: Joi.string().allow(""),
     companyModel: Joi.string().allow(""),
@@ -85,15 +85,15 @@ export const updateProfile = (req: Request, res: Response, next: NextFunction) =
       .required()
       .email()
       .messages({
-        "string.empty": "Vui lòng nhập email của công ty!",
-        "string.email": "Email không đúng định dạng!"
+        "string.empty": "company-email-required",
+        "string.email": "company-email-invalid"
       }),
     logo: Joi.string().allow(""),
     phone: Joi.string()
       .allow('', null) // Cho phép chuỗi rỗng hoặc null
       .pattern(/^(84|0[3|5|7|8|9])[0-9]{8}$/)
       .messages({
-        "string.pattern.base": "Số điện thoại không đúng định dạng",
+        "string.pattern.base": "phone-invalid",
       }),
   });
 
@@ -118,27 +118,27 @@ export const createJob = (req: Request, res: Response, next: NextFunction) => {
     title: Joi.string()
       .required()
       .messages({
-        "string.empty": "Vui lòng nhập tên công việc!",
+        "string.empty": "job-name-required",
       }),
     salaryMin: Joi.number()
       .min(0)
       .messages({
-        "string.empty": "Vui lòng nhập mức lương >= 0!",
+        "string.empty": "salary-valid",
       }),
     salaryMax: Joi.number()
       .min(0)
       .messages({
-        "string.empty": "Vui lòng nhập mức lương >= 0!",
+        "string.empty": "salary-valid",
       }),
     level: Joi.string()
       .required()
       .messages({
-        "string.empty": "Vui lòng cấp bậc của công việc!",
+        "string.empty": "job-level-required",
       }),
     workingForm: Joi.string()
       .required()
       .messages({
-        "string.empty": "Vui lòng chọn hình thức làm việc!",
+        "string.empty": "working-form-required",
       }),
     skills: Joi.string().allow(""),
     expertise: Joi.string().allow(""),
