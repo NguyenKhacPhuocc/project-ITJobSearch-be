@@ -64,4 +64,13 @@ router.get('/list/total-page', companyController.getTotalPageCompanyList)
 router.get('/detail/:slug', companyController.getDetailedCompany)
 router.get('/:slug/jobs', companyController.getJobsInCompany)
 
+
+router.get('/cv/list',
+  authMiddleware.verifyTokenCompany,
+  companyController.getCVList)
+router.get('/cv/total-page',
+  authMiddleware.verifyTokenCompany,
+  companyController.getTotalPageCVList)
+
+
 export default router;

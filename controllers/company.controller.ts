@@ -6,6 +6,7 @@ import { AccountRequest } from "../interfaces/request.interface";
 import Job from "../models/job.model";
 import { title } from "process";
 import City from "../models/city.model";
+import CV from "../models/cv.model";
 
 export const registerPost = async (req: Request, res: Response) => {
   const { companyName, email, password } = req.body;
@@ -495,4 +496,96 @@ export const getJobsInCompany = async (req: Request, res: Response) => {
       code: "error"
     })
   }
+}
+
+export const getCVList = async (req: AccountRequest, res: Response) => {
+  const companyId = req.account.id;
+
+  const JobsInCompany = await Job.find({
+    companyId: companyId
+  })
+
+  const JobIdList = JobsInCompany.map(item => item.id);
+
+  // phân trang
+  let limit = 3;
+  let page = 1;
+  if (req.query.page) {
+    const currentPage = parseInt(`${req.query.page}`);
+    if (currentPage > 0) {
+      page = currentPage;
+    }
+  }
+  // phân trang end
+
+  const cvList = await CV
+    .find({
+      jobId: { $in: JobIdList }
+    })
+    .sort({
+      updatedAt: "desc"
+    })
+    .skip((page - 1) * limit)
+    .limit(limit);
+
+  const dataFinal = [];
+
+  for (const item of cvList) {
+    const job = await Job.findOne({
+      _id: item.jobId
+    })
+
+    const dataItemFinal = {
+      id: item.id,
+      jobName: job?.title || "",
+      fullName: item.fullName,
+      phone: item.phone,
+      email: item.email,
+      jobSalaryMin: job?.salaryMin || 0,
+      jobSalaryMax: job?.salaryMax || 0,
+      jobLevel: job?.level || "",
+      jobWorkingForm: job?.workingForm || "",
+      viewed: item.viewed,
+      status: item.status,
+    }
+
+    dataFinal.push(dataItemFinal)
+  }
+  res.json({
+    code: "success",
+    cvList: dataFinal
+  })
+}
+
+export const getTotalPageCVList = async (req: AccountRequest, res: Response) => {
+  const companyId = req.account.id;
+
+  const JobsInCompany = await Job.find({
+    companyId: companyId
+  })
+
+  const JobIdList = JobsInCompany.map(item => item.id);
+
+  // phân trang
+  let limit = 3;
+  let page = 1;
+  if (req.query.page) {
+    const currentPage = parseInt(`${req.query.page}`);
+    if (currentPage > 0) {
+      page = currentPage;
+    }
+  }
+  const totalRecord = await CV.countDocuments({
+    jobId: { $in: JobIdList }
+  });
+  const totalPage = Math.ceil(totalRecord / limit);
+  if (page > totalPage && totalPage != 0) {
+    page = totalPage;
+  }
+  // phân trang end
+
+  res.json({
+    code: "success",
+    totalPage: totalPage
+  })
 }
