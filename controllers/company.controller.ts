@@ -219,10 +219,10 @@ export const getTotalPageJobList = async (req: AccountRequest, res: Response) =>
 
 export const getJobEdit = async (req: AccountRequest, res: Response) => {
   try {
-    const id = req.params.id;
+    const slug = req.params.slug;
 
     const jobDetail = await Job.findOne({
-      _id: id,
+      slug: slug,
       companyId: req.account.id
     })
 
@@ -249,10 +249,10 @@ export const getJobEdit = async (req: AccountRequest, res: Response) => {
 
 export const JobEditPatch = async (req: AccountRequest, res: Response) => {
   try {
-    const id = req.params.id;
+    const slug = req.params.slug;
 
     const jobDetail = await Job.findOne({
-      _id: id,
+      slug: slug,
       companyId: req.account.id
     })
 
@@ -278,7 +278,7 @@ export const JobEditPatch = async (req: AccountRequest, res: Response) => {
     }
 
     await Job.updateOne({
-      _id: id,
+      slug: slug,
       companyId: req.account.id
     }, req.body)
 
@@ -522,9 +522,6 @@ export const getCVList = async (req: AccountRequest, res: Response) => {
     .find({
       jobId: { $in: JobIdList }
     })
-    .sort({
-      updatedAt: "desc"
-    })
     .skip((page - 1) * limit)
     .limit(limit);
 
@@ -588,4 +585,53 @@ export const getTotalPageCVList = async (req: AccountRequest, res: Response) => 
     code: "success",
     totalPage: totalPage
   })
+}
+
+export const getDetailedCV = async (req: AccountRequest, res: Response) => {
+  try {
+    const idCV = req.params.id
+    const companyId = req.account.id;
+    const detailedCV = await CV.findOne({
+      _id: idCV,
+    }).select("fullName email phone fileCV")
+
+    if (!detailedCV) {
+      res.json({
+        code: "error",
+        message: "Id không hợp lệ!"
+      })
+      return
+    }
+
+    const jobInfo = await Job.findOne({
+      id: detailedCV.jobId,
+      companyId: companyId
+    }).select("title salaryMin salaryMax level workingForm skills slug")
+
+    if (!jobInfo) {
+      res.json({
+        code: "error",
+        message: "Không có quyền truy cập!"
+      })
+      return
+    }
+
+    // cập nhật lại trang thái đã xem cv
+    await CV.updateOne({
+      _id: idCV
+    }, {
+      viewed: true
+    })
+
+    res.json({
+      code: "success",
+      detailedCV: detailedCV,
+      jobInfo: jobInfo
+    })
+  } catch (error) {
+    console.log(error)
+    res.json({
+      code: "error",
+    })
+  }
 }

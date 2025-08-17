@@ -39,12 +39,12 @@ router.get('/job/total-pages',
   companyController.getTotalPageJobList
 )
 
-router.get('/job/edit/:id',
+router.get('/job/edit/:slug',
   authMiddleware.verifyTokenCompany,
   companyController.getJobEdit
 )
 
-router.patch('/job/edit/:id',
+router.patch('/job/edit/:slug',
   authMiddleware.verifyTokenCompany,
   upload.array('images', 8),
   companyValidate.createJob,
@@ -72,5 +72,8 @@ router.get('/cv/total-page',
   authMiddleware.verifyTokenCompany,
   companyController.getTotalPageCVList)
 
+router.get('/cv/detail/:id',
+  authMiddleware.verifyTokenCompany,
+  companyController.getDetailedCV)
 
 export default router;
