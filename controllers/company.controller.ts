@@ -593,7 +593,7 @@ export const getDetailedCV = async (req: AccountRequest, res: Response) => {
     const companyId = req.account.id;
     const detailedCV = await CV.findOne({
       _id: idCV,
-    }).select("fullName email phone fileCV")
+    }).select("fullName jobId email phone fileCV")
 
     if (!detailedCV) {
       res.json({
@@ -602,9 +602,8 @@ export const getDetailedCV = async (req: AccountRequest, res: Response) => {
       })
       return
     }
-
     const jobInfo = await Job.findOne({
-      id: detailedCV.jobId,
+      _id: detailedCV.jobId,
       companyId: companyId
     }).select("title salaryMin salaryMax level workingForm skills slug")
 
@@ -632,6 +631,56 @@ export const getDetailedCV = async (req: AccountRequest, res: Response) => {
     console.log(error)
     res.json({
       code: "error",
+    })
+  }
+}
+
+export const changeStatusCVPatch = async (req: AccountRequest, res: Response) => {
+  try {
+    const companyId = req.account.id;
+    const status = req.body.action;
+    const cvId = req.body.id;
+
+    const infoCV = await CV.findOne({
+      _id: cvId
+    })
+
+    if (!infoCV) {
+      res.json({
+        code: "error",
+        message: "Id không hợp lệ!"
+      });
+      return;
+    }
+
+    const infoJob = await Job.findOne({
+      _id: infoCV.jobId,
+      companyId: companyId
+    })
+
+    if (!infoJob) {
+      res.json({
+        code: "error",
+        message: "Không có quyền truy cập!"
+      });
+      return;
+    }
+
+    await CV.updateOne({
+      _id: cvId
+    }, {
+      status: status
+    })
+
+    res.json({
+      code: "success",
+      message: "Thành công!"
+    })
+  } catch (error) {
+    console.log(error);
+    res.json({
+      code: "error",
+      message: "Id không hợp lệ!"
     })
   }
 }

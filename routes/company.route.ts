@@ -74,6 +74,13 @@ router.get('/cv/total-page',
 
 router.get('/cv/detail/:id',
   authMiddleware.verifyTokenCompany,
-  companyController.getDetailedCV)
+  companyController.getDetailedCV);
+
+router.patch(
+  '/cv/change-status',
+  authMiddleware.verifyTokenCompany,
+  companyController.changeStatusCVPatch
+);
+
 
 export default router;
