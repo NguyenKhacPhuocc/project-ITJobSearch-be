@@ -22,4 +22,14 @@ router.patch('/profile',
   userController.profilePatch
 )
 
+router.get('/cv/list',
+  authMiddleware.verifyTokenUser,
+  userController.getCVList
+);
+router.get('/cv/total-page',
+  authMiddleware.verifyTokenUser,
+  userController.getTotalPageCVList
+);
+
+
 export default router;
