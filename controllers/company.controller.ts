@@ -83,7 +83,7 @@ export const loginPost = async (req: Request, res: Response) => {
     maxAge: (24 * 60 * 60 * 1000), // token có hiệu lực trong vòng 30 hoac 1 ngày
     httpOnly: true,
     secure: process.env.NODE_ENV === "production" ? true : false, // chỉ gửi cookie qua https trong môi trường sản xuất
-    sameSite: "lax" // Cho phép gửi cookie giữa các domain khác nhau
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax" // Cho phép gửi cookie giữa các domain khác nhau
   })
 
 
