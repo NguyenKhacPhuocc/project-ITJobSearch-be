@@ -9,7 +9,6 @@ import cookieParser from 'cookie-parser';
 dotenv.config();
 
 const app = express();
-const port = 8000;
 
 // kết nối DB
 connectDB();
@@ -33,6 +32,6 @@ app.use("/", routes);
 
 
 
-app.listen(port, () => {
-  console.log(`website đang chạy trên cổng ${port}`);
+app.listen(process.env.PORT || 8000, () => {
+  console.log(`website đang chạy trên cổng ${process.env.PORT || 8000}`);
 });
