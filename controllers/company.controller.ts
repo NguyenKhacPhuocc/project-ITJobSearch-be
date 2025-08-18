@@ -187,6 +187,7 @@ export const getJobList = async (req: AccountRequest, res: Response) => {
       companyCity: city?.name?.[locale] ?? city?.name?.['en'] ?? '',
       skills: item.skills,
       expertise: item.expertise,
+      slug: item.slug
     })
   }
 
@@ -229,7 +230,7 @@ export const getJobEdit = async (req: AccountRequest, res: Response) => {
     if (!jobDetail) {
       res.json({
         code: "error",
-        message: "Id không hợp lệ"
+        message: "id-invalid"
       })
       return;
     }
@@ -242,7 +243,7 @@ export const getJobEdit = async (req: AccountRequest, res: Response) => {
     console.log(error)
     res.json({
       code: "error",
-      message: "Id không hợp lệ"
+      message: "id-invalid"
     })
   }
 }

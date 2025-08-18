@@ -5,6 +5,10 @@
     "moduleResolution": "node",   //hỗ trợ import module từ node_modules
     "esModuleInterop": true,    // dùng import thay require
     "resolveJsonModule" : true,   // cho phép import file json
-    "strict": true    // bật chế độ kiểm tra chặt chẽ
-  }
+    "strict": true,    // bật chế độ kiểm tra chặt chẽ
+    "outDir": "dist",
+    "rootDir": ".",
+  },
+  "include": ["**/*.ts"],
+  "exclude": ["node_modules", "dist"]
 }
