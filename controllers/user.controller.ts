@@ -147,14 +147,20 @@ export const getCVList = async (req: AccountRequest, res: Response) => {
       })
       const dataItemFinal = {
         id: item.id,
+        fullName: item.fullName,
+        email: item.email,
+        phone: item.phone,
+        fileCV: item.fileCV,
         companyName: company?.companyName || "",
         jobName: job?.title || "",
         jobSalaryMin: job?.salaryMin || 0,
         jobSalaryMax: job?.salaryMax || 0,
         expertise: job?.expertise || "",
         jobLevel: job?.level || "",
+        jobSkills: job?.skills,
         jobWorkingForm: job?.workingForm || "",
         status: item.status,
+        jobSlug: job?.slug
       }
 
       dataFinal.push(dataItemFinal)
@@ -191,4 +197,36 @@ export const getTotalPageCVList = async (req: AccountRequest, res: Response) => 
     code: "success",
     totalPage: totalPage
   })
+}
+
+export const deleteUserCV = async (req: AccountRequest, res: Response) => {
+  try {
+    const id = req.params.id;
+
+    const cv = await CV.findOne({
+      _id: id,
+    })
+
+    if (!cv) {
+      res.json({
+        code: "error",
+        message: "Id không hợp lệ"
+      })
+      return;
+    }
+    await CV.deleteOne({
+      _id: id,
+    })
+
+    res.json({
+      code: "success",
+      message: "Đã xóa CV!",
+    })
+  } catch (error) {
+    console.log(error)
+    res.json({
+      code: "error",
+      message: "Id không hợp lệ"
+    })
+  }
 }

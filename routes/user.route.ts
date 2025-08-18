@@ -31,5 +31,9 @@ router.get('/cv/total-page',
   userController.getTotalPageCVList
 );
 
+router.delete('/cv/delete/:id',
+  authMiddleware.verifyTokenUser,
+  userController.deleteUserCV
+)
 
 export default router;
