@@ -79,7 +79,11 @@ const checkLogin = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
             return;
         }
         if (!existingUser && !existingCompany) {
-            res.clearCookie("token");
+            res.clearCookie("token", {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === "production",
+                sameSite: process.env.NODE_ENV === "production" ? "none" : "lax"
+            });
             res.json({
                 code: "error",
                 message: "Token không hợp lệ"
@@ -87,7 +91,11 @@ const checkLogin = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
         }
     }
     catch (error) {
-        res.clearCookie("token");
+        res.clearCookie("token", {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: process.env.NODE_ENV === "production" ? "none" : "lax"
+        });
         res.json({
             code: "error",
             message: "Token không hợp lệ"
@@ -96,7 +104,11 @@ const checkLogin = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
 });
 exports.checkLogin = checkLogin;
 const logout = (req, res) => {
-    res.clearCookie("token");
+    res.clearCookie("token", {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax"
+    });
     res.json({
         code: "success",
         message: "Đăng xuất thành công"

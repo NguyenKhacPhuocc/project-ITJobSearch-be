@@ -68,3 +68,13 @@ export const applyCV = async (req: Request, res: Response) => {
     message: "apply_success"
   })
 }
+
+export const getTotalJob = async (req: Request, res: Response) => {
+
+  const totalJob = await Job.countDocuments({})
+  
+  res.json({
+    code: "success",
+    totalJob: totalJob
+  })
+}

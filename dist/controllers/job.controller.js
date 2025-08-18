@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.applyCV = exports.detailJob = void 0;
+exports.getTotalJob = exports.applyCV = exports.detailJob = void 0;
 const job_model_1 = __importDefault(require("../models/job.model"));
 const account_company_model_1 = __importDefault(require("../models/account-company.model"));
 const cv_model_1 = __importDefault(require("../models/cv.model"));
@@ -78,3 +78,11 @@ const applyCV = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     });
 });
 exports.applyCV = applyCV;
+const getTotalJob = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const totalJob = yield job_model_1.default.countDocuments({});
+    res.json({
+        code: "success",
+        totalJob: totalJob
+    });
+});
+exports.getTotalJob = getTotalJob;

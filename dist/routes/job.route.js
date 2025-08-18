@@ -57,4 +57,5 @@ const upload = (0, multer_1.default)({
 });
 router.get('/detail/:slug', jobController.detailJob);
 router.post('/apply', upload.single('fileCV'), jobValidate.applyCV, jobController.applyCV);
+router.get('/total-job', jobController.getTotalJob);
 exports.default = router;

@@ -30,5 +30,7 @@ router.post(
   jobController.applyCV
 );
 
+router.get('/total-job', jobController.getTotalJob)
+
 
 export default router;
