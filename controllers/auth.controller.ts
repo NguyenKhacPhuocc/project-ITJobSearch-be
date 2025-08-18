@@ -71,14 +71,22 @@ export const checkLogin = async (req: Request, res: Response) => {
     }
 
     if (!existingUser && !existingCompany) {
-      res.clearCookie("token");
+      res.clearCookie("token", {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax"
+      });
       res.json({
         code: "error",
         message: "Token không hợp lệ"
       });
     }
   } catch (error) {
-    res.clearCookie("token");
+    res.clearCookie("token", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax"
+    });
     res.json({
       code: "error",
       message: "Token không hợp lệ"
@@ -88,7 +96,12 @@ export const checkLogin = async (req: Request, res: Response) => {
 
 
 export const logout = (req: Request, res: Response) => {
-  res.clearCookie("token");
+  res.clearCookie("token", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax"
+  });
+
   res.json({
     code: "success",
     message: "Đăng xuất thành công"
