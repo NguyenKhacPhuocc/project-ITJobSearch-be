@@ -12,7 +12,6 @@ const cookie_parser_1 = __importDefault(require("cookie-parser"));
 // load biến môi trường
 dotenv_1.default.config();
 const app = (0, express_1.default)();
-const port = 8000;
 // kết nối DB
 (0, DBconnect_1.connectDB)();
 // cấu hình CORS
@@ -28,6 +27,6 @@ app.use(express_1.default.json());
 app.use((0, cookie_parser_1.default)());
 // thiết lập đường dẫn
 app.use("/", index_route_1.default);
-app.listen(port, () => {
-    console.log(`website đang chạy trên cổng ${port}`);
+app.listen(process.env.PORT || 8000, () => {
+    console.log(`website đang chạy trên cổng ${process.env.PORT || 8000}`);
 });
