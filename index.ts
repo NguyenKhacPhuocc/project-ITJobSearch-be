@@ -16,7 +16,7 @@ connectDB();
 
 // cấu hình CORS
 app.use(cors({
-  origin: "http://localhost:3000", // domain frontend
+  origin: process.env.FRONTEND_URL, // domain frontend
   methods: ["GET", "POST", "PATCH", "DELETE"],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true // cho phép gửi cookie từ backend -> frontend (domain khác nhau)
