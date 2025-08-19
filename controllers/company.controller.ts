@@ -84,6 +84,8 @@ export const loginPost = async (req: Request, res: Response) => {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production" ? true : false, // chỉ gửi cookie qua https trong môi trường sản xuất
     sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // Cho phép gửi cookie giữa các domain khác nhau
+    domain: ".onrender.com",
+    path: "/",
   })
 
 
