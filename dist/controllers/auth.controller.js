@@ -12,97 +12,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.verify = exports.logout = exports.checkLogin = void 0;
+exports.verify = exports.logout = void 0;
 const account_user_model_1 = __importDefault(require("../models/account-user.model"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const account_company_model_1 = __importDefault(require("../models/account-company.model"));
-const checkLogin = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    try {
-        const token = req.cookies.token;
-        if (!token) {
-            res.json({
-                code: "error",
-                message: "Token không hợp lệ"
-            });
-            return;
-        }
-        // giải mã token
-        const decoded = jsonwebtoken_1.default.verify(token, `${process.env.JWT_SECRET}`); // giải mã token
-        const { id, email } = decoded;
-        // tìm tài khoản ứng viên
-        const existingUser = yield account_user_model_1.default.findOne({
-            _id: id,
-            email: email
-        });
-        if (existingUser) {
-            const info = {
-                id: existingUser.id,
-                fullName: existingUser.fullName,
-                email: existingUser.email,
-                avatar: existingUser.avatar,
-                phone: existingUser.phone,
-                role: "user",
-            };
-            res.json({
-                code: "success",
-                message: "Token hợp lệ",
-                info: info
-            });
-            return;
-        }
-        // tìm tài khoản company
-        const existingCompany = yield account_company_model_1.default.findOne({
-            _id: id,
-            email: email
-        });
-        if (existingCompany) {
-            const info = {
-                id: existingCompany.id,
-                companyName: existingCompany.companyName,
-                email: existingCompany.email,
-                city: existingCompany.city,
-                address: existingCompany.address,
-                companyModel: existingCompany.companyModel,
-                companyEmployees: existingCompany.companyEmployees,
-                workingTime: existingCompany.workingTime,
-                workOvertime: existingCompany.workOvertime,
-                description: existingCompany.description,
-                logo: existingCompany.logo,
-                phone: existingCompany.phone,
-                role: "company",
-            };
-            res.json({
-                code: "success",
-                message: "Token hợp lệ",
-                info: info
-            });
-            return;
-        }
-        if (!existingUser && !existingCompany) {
-            res.clearCookie("token", {
-                httpOnly: true,
-                secure: process.env.NODE_ENV === "production",
-                sameSite: process.env.NODE_ENV === "production" ? "none" : "lax"
-            });
-            res.json({
-                code: "error",
-                message: "Token không hợp lệ"
-            });
-        }
-    }
-    catch (error) {
-        res.clearCookie("token", {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
-            sameSite: process.env.NODE_ENV === "production" ? "none" : "lax"
-        });
-        res.json({
-            code: "error",
-            message: "Token không hợp lệ"
-        });
-    }
-});
-exports.checkLogin = checkLogin;
 const logout = (req, res) => {
     res.clearCookie("token", {
         httpOnly: true,
@@ -151,13 +64,19 @@ const verify = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             return res.json({
                 code: "success",
                 info: {
-                    id: company._id,
+                    id: company.id,
                     companyName: company.companyName,
                     email: company.email,
+                    city: company.city,
+                    address: company.address,
+                    companyModel: company.companyModel,
+                    companyEmployees: company.companyEmployees,
+                    workingTime: company.workingTime,
+                    workOvertime: company.workOvertime,
+                    description: company.description,
                     logo: company.logo,
                     phone: company.phone,
-                    role: "company"
-                    // Thêm các trường khác nếu cần
+                    role: "company",
                 }
             });
         }

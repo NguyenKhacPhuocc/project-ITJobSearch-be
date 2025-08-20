@@ -20,7 +20,6 @@ const search = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a, _b;
     const dataFinal = [];
     let companyInfo = null;
-    let totalPage = 1;
     if (Object.keys(req.query).length > 0) {
         const find = {};
         // skill
@@ -81,7 +80,7 @@ const search = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             find.workingForm = req.query.workingForm;
         }
         // phân trang
-        let limit = 3;
+        let limit = 6;
         let page = 1;
         if (req.query.page) {
             const currentPage = parseInt(`${req.query.page}`);
@@ -140,10 +139,6 @@ const searchTotalPages = (req, res) => __awaiter(void 0, void 0, void 0, functio
     let totalRecord = 0;
     if (Object.keys(req.query).length > 0) {
         const find = {};
-        // skill
-        if (req.query.skill) {
-            find.skills = { $regex: new RegExp(`^${req.query.skill}$`, 'i') };
-        }
         //city
         if (req.query.city) {
             const city = yield city_model_1.default.findOne({
@@ -198,7 +193,7 @@ const searchTotalPages = (req, res) => __awaiter(void 0, void 0, void 0, functio
             find.workingForm = req.query.workingForm;
         }
         // phân trang
-        let limit = 3;
+        let limit = 6;
         let page = 1;
         totalRecord = yield job_model_1.default.countDocuments(find);
         totalPage = Math.ceil(totalRecord / limit);

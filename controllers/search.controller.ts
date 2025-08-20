@@ -6,7 +6,6 @@ import City from "../models/city.model";
 export const search = async (req: Request, res: Response) => {
   const dataFinal = []
   let companyInfo: any = null;
-  let totalPage = 1;
 
   if (Object.keys(req.query).length > 0) {
     const find: any = {}
@@ -73,7 +72,7 @@ export const search = async (req: Request, res: Response) => {
     }
 
     // phân trang
-    let limit = 3;
+    let limit = 6;
     let page = 1;
     if (req.query.page) {
       const currentPage = parseInt(`${req.query.page}`);
@@ -137,11 +136,6 @@ export const searchTotalPages = async (req: Request, res: Response) => {
   if (Object.keys(req.query).length > 0) {
     const find: any = {}
 
-    // skill
-    if (req.query.skill) {
-      find.skills = { $regex: new RegExp(`^${req.query.skill}$`, 'i') };
-    }
-
     //city
     if (req.query.city) {
       const city = await City.findOne({
@@ -199,7 +193,7 @@ export const searchTotalPages = async (req: Request, res: Response) => {
     }
 
     // phân trang
-    let limit = 3;
+    let limit = 6;
     let page = 1;
     totalRecord = await Job.countDocuments(find);
     totalPage = Math.ceil(totalRecord / limit);

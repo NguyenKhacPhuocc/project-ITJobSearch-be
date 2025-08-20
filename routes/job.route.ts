@@ -32,5 +32,13 @@ router.post(
 
 router.get('/total-job', jobController.getTotalJob)
 
+router.get('/job-by-city/:slug', jobController.getJobByCity)
+router.get('/job-by-city/total-pages/:slug', jobController.getTotalPageJobByCity)
+
+router.get('/job-by-expertise/:slug', jobController.getJobByExpertise)
+router.get('/job-by-expertise/total-pages/:slug', jobController.getTotalPageJobByExpertise)
+
+router.get('/job-by-skill/:slug', jobController.getJobBySkill)
+router.get('/job-by-skill/total-pages/:slug', jobController.getTotalPageJobBySkill)
 
 export default router;
