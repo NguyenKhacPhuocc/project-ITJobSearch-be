@@ -354,6 +354,9 @@ export const list = async (req: Request, res: Response) => {
 
 export const getCompanyList = async (req: Request, res: Response) => {
   let limit = 9;
+  if (req.query.limitItems) {
+    limit = parseInt(`${req.query.limitItems}`);
+  }
   let page = 1;
   if (req.query.page) {
     const currentPage = parseInt(`${req.query.page}`);
