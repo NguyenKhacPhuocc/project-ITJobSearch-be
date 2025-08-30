@@ -36,5 +36,5 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const AIController = __importStar(require("../controllers/ai.controller"));
 const router = (0, express_1.Router)();
-router.post('/recommend-jobs', AIController.recommendedJobList);
+router.get('/recommend-jobs', AIController.recommendedJobList);
 exports.default = router;
