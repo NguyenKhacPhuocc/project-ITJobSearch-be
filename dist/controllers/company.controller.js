@@ -323,6 +323,9 @@ const list = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
 exports.list = list;
 const getCompanyList = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     let limit = 9;
+    if (req.query.limitItems) {
+        limit = parseInt(`${req.query.limitItems}`);
+    }
     let page = 1;
     if (req.query.page) {
         const currentPage = parseInt(`${req.query.page}`);

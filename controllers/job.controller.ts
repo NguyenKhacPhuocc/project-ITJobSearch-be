@@ -4,6 +4,9 @@ import AccountCompany from "../models/account-company.model";
 import CV from "../models/cv.model";
 import City from "../models/city.model";
 import { expertises, skills } from "../config/variable";
+import AccountUser from "../models/account-user.model";
+import jwt from "jsonwebtoken";
+import { AccountRequest } from "../interfaces/request.interface";
 
 
 export const detailJob = async (req: Request, res: Response) => {
@@ -56,6 +59,54 @@ export const detailJob = async (req: Request, res: Response) => {
     res.json({
       code: "error"
     })
+  }
+}
+
+export const clickJob = async (req: AccountRequest, res: Response) => {
+  const token = req.cookies["token"];
+  if (token) {
+    const slug = req.params.slug
+    const job = await Job.findOne({
+      slug: slug
+    })
+    if (job) {
+      const company = await AccountCompany.findOne({
+        _id: job.companyId
+      })
+      const decoded = jwt.verify(token, `${process.env.JWT_SECRET}`) as jwt.JwtPayload; // Giải mã token
+      const { id, email } = decoded;
+
+
+      // lưu vị trí gần đây
+      await AccountUser.findByIdAndUpdate(id, {
+        $pull: { preferredLocations: company?.city } // xoá trước nếu đã tồn tại đảm bảo chỉ lưu những id khác nhau vào recentClick
+      });
+
+      await AccountUser.findByIdAndUpdate(id, {
+        $push: {
+          preferredLocations: {
+            $each: [company?.city], // thêm mới
+            $position: 0,         // thêm vào đầu mảng (mới nhất trước)
+            $slice: 5            // giữ lại 5 phần tử
+          }
+        }
+      });
+
+      // lưu cách lượt click gần đây 
+      await AccountUser.findByIdAndUpdate(id, {
+        $pull: { recentClicks: job.id } // xoá trước nếu đã tồn tại đảm bảo chỉ lưu những id khác nhau vào recentClick
+      });
+
+      await AccountUser.findByIdAndUpdate(id, {
+        $push: {
+          recentClicks: {
+            $each: [job.id], // thêm mới
+            $position: 0,         // thêm vào đầu mảng (mới nhất trước)
+            $slice: 5            // giữ lại 5 phần tử
+          }
+        }
+      });
+    }
   }
 }
 

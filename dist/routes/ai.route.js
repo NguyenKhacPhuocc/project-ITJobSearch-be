@@ -34,9 +34,7 @@ var __importStar = (this && this.__importStar) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
-const searchController = __importStar(require("../controllers/search.controller"));
+const AIController = __importStar(require("../controllers/ai.controller"));
 const router = (0, express_1.Router)();
-router.get('/', searchController.search);
-router.post('/', searchController.recentSearch);
-router.get('/total-pages', searchController.searchTotalPages);
+router.post('/recommend-jobs', AIController.recommendedJobList);
 exports.default = router;

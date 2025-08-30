@@ -12,10 +12,12 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.searchTotalPages = exports.search = void 0;
+exports.searchTotalPages = exports.recentSearch = exports.search = void 0;
 const job_model_1 = __importDefault(require("../models/job.model"));
 const account_company_model_1 = __importDefault(require("../models/account-company.model"));
 const city_model_1 = __importDefault(require("../models/city.model"));
+const account_user_model_1 = __importDefault(require("../models/account-user.model"));
+const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const search = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a, _b;
     const dataFinal = [];
@@ -133,6 +135,29 @@ const search = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     });
 });
 exports.search = search;
+const recentSearch = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const token = req.cookies["token"];
+    if (token) {
+        const keysearch = req.query.keysearch;
+        if (keysearch) {
+            const decoded = jsonwebtoken_1.default.verify(token, `${process.env.JWT_SECRET}`); // Giải mã token
+            const { id, email } = decoded;
+            yield account_user_model_1.default.findByIdAndUpdate(id, {
+                $pull: { recentSearches: keysearch } // xoá trước nếu đã tồn tại
+            });
+            yield account_user_model_1.default.findByIdAndUpdate(id, {
+                $push: {
+                    recentSearches: {
+                        $each: [keysearch], // thêm mới
+                        $position: 0, // thêm vào đầu mảng (mới nhất trước)
+                        $slice: 5 // giữ lại 5 phần tử
+                    }
+                }
+            });
+        }
+    }
+});
+exports.recentSearch = recentSearch;
 const searchTotalPages = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     let companyInfo = null;
     let totalPage = 0;

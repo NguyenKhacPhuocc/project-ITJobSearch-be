@@ -22,6 +22,7 @@ const upload = multer({
 });
 
 router.get('/detail/:slug', jobController.detailJob);
+router.post('/click/:slug', jobController.clickJob);
 
 router.post(
   '/apply',

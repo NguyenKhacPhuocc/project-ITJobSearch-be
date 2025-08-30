@@ -6,6 +6,7 @@ import cityRouter from "./city.route";
 import uploadRouter from "./upload.route";
 import searchRouter from "./search.route";
 import jobRouter from "./job.route";
+import aiRouter from "./ai.route";
 
 
 const router = Router();
@@ -17,5 +18,6 @@ router.use('/city', cityRouter)
 router.use('/upload', uploadRouter)
 router.use('/search', searchRouter)
 router.use('/job', jobRouter)
+router.use('/ai', aiRouter)
 
 export default router;

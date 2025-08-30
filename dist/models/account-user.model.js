@@ -9,9 +9,20 @@ const schema = new mongoose_1.default.Schema({
     email: String,
     password: String,
     avatar: String,
-    phone: String
-}, {
-    timestamps: true // tự động sinh ra trường createdAt và updatedAt
-});
+    phone: String,
+    // theo dõi hành vi
+    recentClicks: {
+        type: [String], // hoặc lưu object { itemId, timestamp }
+        default: []
+    },
+    recentSearches: {
+        type: [String],
+        default: []
+    },
+    preferredLocations: {
+        type: [String],
+        default: []
+    }
+}, { timestamps: true });
 const AccountUser = mongoose_1.default.model('AccountUser', schema, "accounts-user");
 exports.default = AccountUser;

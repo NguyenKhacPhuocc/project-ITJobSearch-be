@@ -5,13 +5,24 @@ const schema = new mongoose.Schema({
   email: String,
   password: String,
   avatar: String,
-  phone: String
+  phone: String,
 
-},
-  {
-    timestamps: true // tự động sinh ra trường createdAt và updatedAt
-  });
+  // theo dõi hành vi
+  recentClicks: {
+    type: [String], // hoặc lưu object { itemId, timestamp }
+    default: []
+  },
+  recentSearches: {
+    type: [String],
+    default: []
+  },
+  preferredLocations: {
+    type: [String],
+    default: []
+  }
+
+}, { timestamps: true });
 
 const AccountUser = mongoose.model('AccountUser', schema, "accounts-user");
 
-export default AccountUser
+export default AccountUser;

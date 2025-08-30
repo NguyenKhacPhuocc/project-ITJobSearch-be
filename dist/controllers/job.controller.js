@@ -12,12 +12,14 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getTotalPageJobBySkill = exports.getJobBySkill = exports.getTotalPageJobByExpertise = exports.getJobByExpertise = exports.getTotalPageJobByCity = exports.getJobByCity = exports.getTotalJob = exports.applyCV = exports.detailJob = void 0;
+exports.getTotalPageJobBySkill = exports.getJobBySkill = exports.getTotalPageJobByExpertise = exports.getJobByExpertise = exports.getTotalPageJobByCity = exports.getJobByCity = exports.getTotalJob = exports.applyCV = exports.clickJob = exports.detailJob = void 0;
 const job_model_1 = __importDefault(require("../models/job.model"));
 const account_company_model_1 = __importDefault(require("../models/account-company.model"));
 const cv_model_1 = __importDefault(require("../models/cv.model"));
 const city_model_1 = __importDefault(require("../models/city.model"));
 const variable_1 = require("../config/variable");
+const account_user_model_1 = __importDefault(require("../models/account-user.model"));
+const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const detailJob = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const slug = req.params.slug;
@@ -69,6 +71,49 @@ const detailJob = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     }
 });
 exports.detailJob = detailJob;
+const clickJob = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const token = req.cookies["token"];
+    if (token) {
+        const slug = req.params.slug;
+        const job = yield job_model_1.default.findOne({
+            slug: slug
+        });
+        if (job) {
+            const company = yield account_company_model_1.default.findOne({
+                _id: job.companyId
+            });
+            const decoded = jsonwebtoken_1.default.verify(token, `${process.env.JWT_SECRET}`); // Giải mã token
+            const { id, email } = decoded;
+            // lưu vị trí gần đây
+            yield account_user_model_1.default.findByIdAndUpdate(id, {
+                $pull: { preferredLocations: company === null || company === void 0 ? void 0 : company.city } // xoá trước nếu đã tồn tại đảm bảo chỉ lưu những id khác nhau vào recentClick
+            });
+            yield account_user_model_1.default.findByIdAndUpdate(id, {
+                $push: {
+                    preferredLocations: {
+                        $each: [company === null || company === void 0 ? void 0 : company.city], // thêm mới
+                        $position: 0, // thêm vào đầu mảng (mới nhất trước)
+                        $slice: 5 // giữ lại 5 phần tử
+                    }
+                }
+            });
+            // lưu cách lượt click gần đây 
+            yield account_user_model_1.default.findByIdAndUpdate(id, {
+                $pull: { recentClicks: job.id } // xoá trước nếu đã tồn tại đảm bảo chỉ lưu những id khác nhau vào recentClick
+            });
+            yield account_user_model_1.default.findByIdAndUpdate(id, {
+                $push: {
+                    recentClicks: {
+                        $each: [job.id], // thêm mới
+                        $position: 0, // thêm vào đầu mảng (mới nhất trước)
+                        $slice: 5 // giữ lại 5 phần tử
+                    }
+                }
+            });
+        }
+    }
+});
+exports.clickJob = clickJob;
 const applyCV = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
     req.body.fileCV = ((_a = req.file) === null || _a === void 0 ? void 0 : _a.path) || "";

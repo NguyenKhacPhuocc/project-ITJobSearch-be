@@ -2,6 +2,9 @@ import { Request, Response } from "express";
 import Job from "../models/job.model";
 import AccountCompany from "../models/account-company.model";
 import City from "../models/city.model";
+import { AccountRequest } from "../interfaces/request.interface";
+import AccountUser from "../models/account-user.model";
+import jwt from "jsonwebtoken";
 
 export const search = async (req: Request, res: Response) => {
   const dataFinal = []
@@ -125,6 +128,31 @@ export const search = async (req: Request, res: Response) => {
     jobs: dataFinal,
     companyInfo: companyInfo
   })
+}
+
+export const recentSearch = async (req: AccountRequest, res: Response) => {
+  const token = req.cookies["token"];
+  if (token) {
+    const keysearch = req.query.keysearch
+    if (keysearch) {
+      const decoded = jwt.verify(token, `${process.env.JWT_SECRET}`) as jwt.JwtPayload; // Giải mã token
+      const { id, email } = decoded;
+
+      await AccountUser.findByIdAndUpdate(id, {
+        $pull: { recentSearches: keysearch } // xoá trước nếu đã tồn tại
+      });
+
+      await AccountUser.findByIdAndUpdate(id, {
+        $push: {
+          recentSearches: {
+            $each: [keysearch], // thêm mới
+            $position: 0,         // thêm vào đầu mảng (mới nhất trước)
+            $slice: 5            // giữ lại 5 phần tử
+          }
+        }
+      });
+    }
+  }
 }
 
 
