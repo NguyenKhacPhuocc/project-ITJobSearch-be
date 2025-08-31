@@ -18,27 +18,60 @@ const job_model_1 = __importDefault(require("../models/job.model"));
 const account_company_model_1 = __importDefault(require("../models/account-company.model"));
 const city_model_1 = __importDefault(require("../models/city.model"));
 const generative_ai_1 = require("@google/generative-ai");
+const ioredis_1 = __importDefault(require("ioredis"));
 // Khởi tạo client Google Gemini
 const genAI = new generative_ai_1.GoogleGenerativeAI(process.env.GOOGLE_API_KEY || "");
 const model = genAI.getGenerativeModel({
     model: "gemini-1.5-flash",
     generationConfig: { responseMimeType: "application/json" }, // Yêu cầu trả về JSON
 });
+// Khởi tạo Redis
+const redis = new ioredis_1.default(`${process.env.REDIS_URL}`);
 const recommendedJobList = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a, _b;
     try {
-        const dataFinal = [];
         const { userId } = req.body;
+        // Kiểm tra cache
+        const cacheKey = `recommended_jobs:${userId}`;
+        const cachedResult = yield redis.get(cacheKey);
+        const ttl = yield redis.ttl(cacheKey);
+        console.log(`Remaining TTL for ${cacheKey}: ${ttl} seconds`);
+        if (cachedResult) {
+            return res.json({
+                code: "success",
+                recommendedJobList: JSON.parse(cachedResult),
+            });
+        }
         // Lấy thông tin user
         const user = yield account_user_model_1.default.findById(userId);
         if (!user)
             return res.status(404).json({ error: "User not found" });
-        // Lấy danh sách job (bỏ description cho nhẹ)
-        const jobs = yield job_model_1.default.find({}, "-description");
-        for (const item of jobs) {
-            const company = yield account_company_model_1.default.findOne({ _id: item.companyId });
-            const itemFinal = {
-                id: item.id,
+        // Lấy danh sách job
+        const regexArray = user.recentSearches.map((term) => new RegExp(term, "i") // "i" = không phân biệt hoa thường
+        );
+        const jobs = yield job_model_1.default.find({
+            $or: [
+                { skills: { $in: user.recentSearches } },
+                { title: { $in: regexArray } }, // ✅ dùng regex thay cho $in string
+                { city: { $in: user.preferredLocations } },
+                { _id: { $in: user.recentClicks } },
+            ],
+        }, "-description")
+            .limit(50);
+        // Lấy tất cả company và city liên quan một lần
+        const companyIds = jobs.map((job) => job.companyId);
+        const companies = yield account_company_model_1.default.find({ _id: { $in: companyIds } });
+        const cityIds = companies.map((company) => company.city);
+        const cities = yield city_model_1.default.find({ _id: { $in: cityIds } });
+        // Tạo map để truy xuất nhanh
+        const companyMap = new Map(companies.map((company) => [company.id.toString(), company]));
+        const cityMap = new Map(cities.map((city) => [city.id.toString(), city]));
+        // Chuyển đổi dữ liệu
+        const dataFinal = jobs.map((item) => {
+            var _a, _b, _c;
+            const company = companyMap.get(item.companyId.toString());
+            const city = company ? cityMap.get((_a = company.city) === null || _a === void 0 ? void 0 : _a.toString()) : null;
+            return {
+                id: item._id.toString(),
                 companyLogo: (company === null || company === void 0 ? void 0 : company.logo) || "",
                 title: item.title,
                 companyName: (company === null || company === void 0 ? void 0 : company.companyName) || "",
@@ -46,22 +79,16 @@ const recommendedJobList = (req, res) => __awaiter(void 0, void 0, void 0, funct
                 salaryMax: item.salaryMax,
                 level: item.level,
                 workingForm: item.workingForm,
-                companyCity: { vi: "", en: "" },
+                companyCity: {
+                    vi: ((_b = city === null || city === void 0 ? void 0 : city.name) === null || _b === void 0 ? void 0 : _b.vi) || "",
+                    en: ((_c = city === null || city === void 0 ? void 0 : city.name) === null || _c === void 0 ? void 0 : _c.en) || "",
+                },
                 skills: item.skills,
                 slug: item.slug,
                 expertise: item.expertise,
-                city: company === null || company === void 0 ? void 0 : company.city,
+                city: (company === null || company === void 0 ? void 0 : company.city) || "",
             };
-            if (company) {
-                const city = yield city_model_1.default.findOne({ _id: company.city });
-                itemFinal.companyCity = {
-                    vi: ((_a = city === null || city === void 0 ? void 0 : city.name) === null || _a === void 0 ? void 0 : _a.vi) || "",
-                    en: ((_b = city === null || city === void 0 ? void 0 : city.name) === null || _b === void 0 ? void 0 : _b.en) || "",
-                };
-            }
-            dataFinal.push(itemFinal);
-        }
-        const { recentClicks, recentSearches, preferredLocations } = user;
+        });
         // Rút gọn dữ liệu gửi cho AI
         const jobsForAI = dataFinal.map((job) => ({
             id: job.id,
@@ -75,13 +102,11 @@ const recommendedJobList = (req, res) => __awaiter(void 0, void 0, void 0, funct
         const prompt = `
       Danh sách job:
       ${JSON.stringify(jobsForAI)}
-
       Lịch sử người dùng:
-      - Recent Clicks: ${recentClicks.join(", ")}
-      - Recent Searches: ${recentSearches.join(", ")}
-      - Recent Location(city): ${preferredLocations.join(", ")}
-
-      Hãy chọn ra 9 job phù hợp nhất và trả về JSON dạng:
+      - Recent Clicks: ${user.recentClicks.join(", ")}
+      - Recent Searches: ${user.recentSearches.join(", ")}
+      - Recent Location(city): ${user.preferredLocations.join(", ")}
+      Hãy chọn ra tối đa 9 (có thể ít hơn, <= danh sách job) job phù hợp nhất (chỉ lấy các job khác nhau) và trả về JSON dạng:
       [{ "id": string, "title": string, "reason": string }]
     `;
         // Gọi Gemini API
@@ -92,6 +117,8 @@ const recommendedJobList = (req, res) => __awaiter(void 0, void 0, void 0, funct
             const fullJob = dataFinal.find((job) => job.id === rec.id);
             return Object.assign(Object.assign({}, fullJob), { reason: rec.reason });
         });
+        // Lưu vào cache
+        yield redis.set(cacheKey, JSON.stringify(recommendedJobs), "EX", 300);
         res.json({
             code: "success",
             recommendedJobList: recommendedJobs
