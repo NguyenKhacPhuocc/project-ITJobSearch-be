@@ -36,28 +36,53 @@ export const recommendedJobList = async (req: Request, res: Response) => {
     const user = await AccountUser.findById(userId);
     if (!user) return res.status(404).json({ error: "User not found" });
 
-    // Lấy danh sách job
-    const regexArray = user.recentSearches.map((term: string) =>
-      new RegExp(term, "i") // "i" = không phân biệt hoa thường
-    );
-    const jobs = await Job.find(
-      {
-        $or: [
+    // Kiểm tra nếu cả 3 thuộc tính đều rỗng
+    const hasRecentClicks = user.recentClicks && user.recentClicks.length > 0;
+    const hasRecentSearches = user.recentSearches && user.recentSearches.length > 0;
+    const hasPreferredLocations = user.preferredLocations && user.preferredLocations.length > 0;
+
+    let jobs;
+
+    if (!hasRecentClicks && !hasRecentSearches && !hasPreferredLocations) {
+      // Nếu cả 3 đều rỗng, lấy tất cả job
+      jobs = await Job.find({}, "-description").limit(15);
+    } else {
+      // Nếu có ít nhất 1 thuộc tính có dữ liệu, query như bình thường
+      const regexArray = user.recentSearches?.map((term: string) =>
+        new RegExp(term, "i")
+      ) || [];
+
+      const queryConditions: any[] = [];
+
+      if (hasRecentSearches) {
+        queryConditions.push(
           { skills: { $in: user.recentSearches } },
-          { title: { $in: regexArray } },   // ✅ dùng regex thay cho $in string
-          { city: { $in: user.preferredLocations } },
-          { _id: { $in: user.recentClicks } },
-        ],
-      },
-      "-description"
-    )
-      .limit(50);
+          { title: { $in: regexArray } }
+        );
+      }
+
+      if (hasPreferredLocations) {
+        queryConditions.push({ city: { $in: user.preferredLocations } });
+      }
+
+      if (hasRecentClicks) {
+        queryConditions.push({ _id: { $in: user.recentClicks } });
+      }
+
+      jobs = await Job.find(
+        {
+          $or: queryConditions.length > 0 ? queryConditions : [{}]
+        },
+        "-description"
+      ).limit(50);
+    }
 
     // Lấy tất cả company và city liên quan một lần
     const companyIds = jobs.map((job) => job.companyId);
     const companies = await AccountCompany.find({ _id: { $in: companyIds } });
     const cityIds = companies.map((company) => company.city);
     const cities = await City.find({ _id: { $in: cityIds } });
+
     // Tạo map để truy xuất nhanh
     const companyMap = new Map(companies.map((company) => [company.id.toString(), company]));
     const cityMap = new Map(cities.map((city) => [city.id.toString(), city]));
@@ -96,15 +121,18 @@ export const recommendedJobList = async (req: Request, res: Response) => {
       expertise: job.expertise,
     }));
 
-    // Prompt gửi cho AI
+    // Prompt gửi cho AI - cập nhật để xử lý trường hợp không có lịch sử
     const prompt = `
       Danh sách job:
       ${JSON.stringify(jobsForAI)}
       Lịch sử người dùng:
-      - Recent Clicks: ${user.recentClicks.join(", ")}
-      - Recent Searches: ${user.recentSearches.join(", ")}
-      - Recent Location(city): ${user.preferredLocations.join(", ")}
-      Hãy chọn ra tối đa 9 (có thể ít hơn, <= danh sách job) job phù hợp nhất (chỉ lấy các job khác nhau) và trả về JSON dạng:
+      - Recent Clicks: ${hasRecentClicks ? user.recentClicks.join(", ") : "Không có"}
+      - Recent Searches: ${hasRecentSearches ? user.recentSearches.join(", ") : "Không có"}
+      - Recent Location(city): ${hasPreferredLocations ? user.preferredLocations.join(", ") : "Không có"}
+      ${(!hasRecentClicks && !hasRecentSearches && !hasPreferredLocations)
+        ? "Người dùng chưa có lịch sử tương tác, hãy chọn ra 9 job ngẫu nhiên phù hợp nhất."
+        : "Hãy chọn ra tối đa 9 job phù hợp nhất dựa trên lịch sử người dùng."}
+      Trả về JSON dạng:
       [{ "id": string, "title": string, "reason": string }]
     `;
 
