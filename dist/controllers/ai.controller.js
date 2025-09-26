@@ -22,12 +22,13 @@ const ioredis_1 = __importDefault(require("ioredis"));
 // Khởi tạo client Google Gemini
 const genAI = new generative_ai_1.GoogleGenerativeAI(process.env.GOOGLE_API_KEY || "");
 const model = genAI.getGenerativeModel({
-    model: "gemini-1.5-flash",
+    model: "gemini-2.5-flash",
     generationConfig: { responseMimeType: "application/json" }, // Yêu cầu trả về JSON
 });
 // Khởi tạo Redis
 const redis = new ioredis_1.default(`${process.env.REDIS_URL}`);
 const recommendedJobList = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
     try {
         const { userId } = req.body;
         // Kiểm tra cache
@@ -45,18 +46,32 @@ const recommendedJobList = (req, res) => __awaiter(void 0, void 0, void 0, funct
         const user = yield account_user_model_1.default.findById(userId);
         if (!user)
             return res.status(404).json({ error: "User not found" });
-        // Lấy danh sách job
-        const regexArray = user.recentSearches.map((term) => new RegExp(term, "i") // "i" = không phân biệt hoa thường
-        );
-        const jobs = yield job_model_1.default.find({
-            $or: [
-                { skills: { $in: user.recentSearches } },
-                { title: { $in: regexArray } }, // ✅ dùng regex thay cho $in string
-                { city: { $in: user.preferredLocations } },
-                { _id: { $in: user.recentClicks } },
-            ],
-        }, "-description")
-            .limit(50);
+        // Kiểm tra nếu cả 3 thuộc tính đều rỗng
+        const hasRecentClicks = user.recentClicks && user.recentClicks.length > 0;
+        const hasRecentSearches = user.recentSearches && user.recentSearches.length > 0;
+        const hasPreferredLocations = user.preferredLocations && user.preferredLocations.length > 0;
+        let jobs;
+        if (!hasRecentSearches && !hasPreferredLocations) {
+            // Nếu cả 3 đều rỗng, lấy tất cả job
+            jobs = yield job_model_1.default.find({}, "-description").limit(15);
+        }
+        else {
+            // Nếu có ít nhất 1 thuộc tính có dữ liệu, query như bình thường
+            const regexArray = ((_a = user.recentSearches) === null || _a === void 0 ? void 0 : _a.map((term) => new RegExp(term, "i"))) || [];
+            const queryConditions = [];
+            if (hasRecentSearches) {
+                queryConditions.push({ skills: { $in: user.recentSearches } }, { title: { $in: regexArray } });
+            }
+            if (hasPreferredLocations) {
+                queryConditions.push({ city: { $in: user.preferredLocations } });
+            }
+            if (hasRecentClicks) {
+                queryConditions.push({ _id: { $in: user.recentClicks } });
+            }
+            jobs = yield job_model_1.default.find({
+                $or: queryConditions.length > 0 ? queryConditions : [{}]
+            }, "-description").limit(50);
+        }
         // Lấy tất cả company và city liên quan một lần
         const companyIds = jobs.map((job) => job.companyId);
         const companies = yield account_company_model_1.default.find({ _id: { $in: companyIds } });
@@ -98,15 +113,19 @@ const recommendedJobList = (req, res) => __awaiter(void 0, void 0, void 0, funct
             city: job.city,
             expertise: job.expertise,
         }));
-        // Prompt gửi cho AI
+        // Prompt gửi cho AI - cập nhật để xử lý trường hợp không có lịch sử
+        console.log(jobsForAI);
         const prompt = `
       Danh sách job:
       ${JSON.stringify(jobsForAI)}
       Lịch sử người dùng:
-      - Recent Clicks: ${user.recentClicks.join(", ")}
-      - Recent Searches: ${user.recentSearches.join(", ")}
-      - Recent Location(city): ${user.preferredLocations.join(", ")}
-      Hãy chọn ra tối đa 9 (có thể ít hơn, <= danh sách job) job phù hợp nhất (chỉ lấy các job khác nhau) và trả về JSON dạng:
+      - Recent Clicks: ${hasRecentClicks ? user.recentClicks.join(", ") : "Không có"}
+      - Recent Searches: ${hasRecentSearches ? user.recentSearches.join(", ") : "Không có"}
+      - Recent Location(city): ${hasPreferredLocations ? user.preferredLocations.join(", ") : "Không có"}
+      ${(!hasRecentClicks && !hasRecentSearches && !hasPreferredLocations)
+            ? "Người dùng chưa có lịch sử tương tác, hãy chọn ra 9 job ngẫu nhiên phù hợp nhất."
+            : "Hãy chọn ra tối đa 9 job phù hợp nhất dựa trên lịch sử người dùng."}
+      Trả về JSON dạng:
       [{ "id": string, "title": string, "reason": string }]
     `;
         // Gọi Gemini API

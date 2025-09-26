@@ -9,7 +9,7 @@ import Redis from "ioredis";
 // Khởi tạo client Google Gemini
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY || "");
 const model = genAI.getGenerativeModel({
-  model: "gemini-1.5-flash",
+  model: "gemini-2.5-flash",
   generationConfig: { responseMimeType: "application/json" }, // Yêu cầu trả về JSON
 });
 
@@ -43,7 +43,7 @@ export const recommendedJobList = async (req: Request, res: Response) => {
 
     let jobs;
 
-    if (!hasRecentClicks && !hasRecentSearches && !hasPreferredLocations) {
+    if (!hasRecentSearches && !hasPreferredLocations) {
       // Nếu cả 3 đều rỗng, lấy tất cả job
       jobs = await Job.find({}, "-description").limit(15);
     } else {
@@ -122,6 +122,7 @@ export const recommendedJobList = async (req: Request, res: Response) => {
     }));
 
     // Prompt gửi cho AI - cập nhật để xử lý trường hợp không có lịch sử
+    console.log(jobsForAI)
     const prompt = `
       Danh sách job:
       ${JSON.stringify(jobsForAI)}
